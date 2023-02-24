@@ -25,7 +25,6 @@ def filter_by_need(posts, problem):
     for post in posts:
         results.append(has_need.remote(post, problem))
     output = ray.get(results)
-    print(len(output))
     filtered_posts = [post for post in output if post]
 
     return filtered_posts
