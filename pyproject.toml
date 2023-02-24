@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "step-one"
+version = "0.1.0"
+description = ""
+authors = ["David Corbitt <davidlcorbitt@gmail.com>"]
+readme = "README.md"
+packages = [{include = "step_one"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.0.92"
+openai = "^0.26.5"
+tiktoken = "^0.2.0"
+ray = "^2.2.0"
+praw = "^7.6.1"
+appdirs = "^1.4.4"
+
+[tool.poetry.scripts]
+step-one = "step_one.main:find_posts"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
