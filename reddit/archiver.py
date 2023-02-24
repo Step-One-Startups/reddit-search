@@ -19,6 +19,8 @@ from reddit.configuration import Configuration
 
 logger = logging.getLogger(__name__)
 
+download_directory = "data"
+
 
 class Archiver(RedditConnector):
     def __init__(self, args: Configuration, logging_handlers: Iterable[logging.Handler] = ()):
@@ -84,7 +86,7 @@ class Archiver(RedditConnector):
             return
         content = json.dumps(self.entries)
         current_time = datetime.now().strftime("%H-%M-%S")
-        file_path = Path(self.download_directory, f"{current_time}_{len(self.entries)}.json")
+        file_path = Path(download_directory, f"{current_time}_{len(self.entries)}.json")
         with Path(file_path).open(mode="w", encoding="utf-8") as file:
             logger.debug(
                 f"Writing {len(self.entries)} entries to file in json"
