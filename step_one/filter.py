@@ -16,11 +16,11 @@ def filter_by_keyphrase(posts, keyphrases):
             filtered_posts.append(post)
     return filtered_posts
 
-def filter_by_need(posts, question):
+def filter_by_need(posts, need):
     ray.init()
     results = [] 
     for post in posts:
-        results.append(has_need.remote(post, question))
+        results.append(has_need.remote(post, need))
     output = ray.get(results)
     ray.shutdown()
     filtered_posts = [post for post in output if post]

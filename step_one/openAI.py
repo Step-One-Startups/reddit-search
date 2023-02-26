@@ -9,7 +9,7 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],
     template="""
-State the following need as the simple title of a blog post from the perspective of someone who has the need.
+State the following need as the simple title of a reddit post from the perspective of someone who has the need.
 
 Need: {need}
 
@@ -55,25 +55,23 @@ def extract_need(post):
     
 
 discern_applicability_prompt = PromptTemplate(
-    input_variables=["title", "summary", "question"],
+    input_variables=["title", "summary", "need"],
     template="""
 Here is the title and summary of a reddit post I am interested in:
 
 title: {title}
 summary: {summary}
 
-Please answer the following question:
-
-{question}
+Does the person writing this post have the following problem themselves? {need}
 
 Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Label your true/false answer with \"Answer:\".""" ,
 )
 
-def discern_applicability(post, question):
+def discern_applicability(post, need):
     formatted_discern_applicability_prompt = discern_applicability_prompt.format(
         title=post["title"],
         summary=post["summary"],
-        question=question
+        need=need
     )
     full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
     post["full_answer"] = full_answer
