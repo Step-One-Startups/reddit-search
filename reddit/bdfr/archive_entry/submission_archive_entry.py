@@ -26,6 +26,7 @@ class SubmissionArchiveEntry(BaseArchiveEntry):
             "title": self.source.title,
             "name": self.source.name,
             "subreddit": self.source.subreddit.display_name,
+            "subreddit_description": self.source.subreddit.public_description,
             # "url": self.source.url,
             "selftext": self.source.selftext,
             "score": self.source.score,
