@@ -22,7 +22,7 @@ def search_posts(config: Configuration):
 def search_posts_raw(problem: str):
     posts = []
     try:
-        search_string = f"http://www.reddit.com/search.json?q={problem}"
+        search_string = f"http://www.reddit.com/search.json?q={problem}&limit=50"
         print(search_string)
         response = requests.get(search_string, headers = {'User-agent': 'step-one bot 0.1'}).json()
         raw_posts = response["data"]["children"]
