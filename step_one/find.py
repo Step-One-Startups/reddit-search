@@ -14,8 +14,8 @@ NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE = 10
 for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
 
-def find_posts():
-    need = "Protect oneself from government surveillance."
+def find_posts(provided_need: str):
+    need = provided_need or "Protect oneself from government surveillance."
     need_from_user_perspective = restate_need(need)
     print("restated need:", need_from_user_perspective)
     # need_from_user_perspective = "I want to develop new habits."
@@ -71,6 +71,7 @@ def find_posts():
             print(post["summary"])
         # print(post)
         print()
+    return posts
 
 def search_subreddits(config: Configuration, question: str):
     original_posts = search_posts(config)

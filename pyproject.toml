@@ -14,9 +14,10 @@ tiktoken = "^0.2.0"
 ray = "^2.2.0"
 praw = "^7.6.1"
 appdirs = "^1.4.4"
+streamlit = "^1.19.0"
 
 [tool.poetry.scripts]
-step-one = "step_one.main:find_posts"
+step-one = "step_one.find:find_posts"
 
 
 [build-system]
