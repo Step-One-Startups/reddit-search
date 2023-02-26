@@ -4,12 +4,7 @@ from reddit.configuration import Configuration
 from reddit.search import search_posts, search_posts_raw
 
 from step_one.filter import filter_by_keyphrase, filter_by_need, filter_subreddits
-
-people_to_look_for="Users who want book suggestions."
-problem = "I want to develop new habits."
-subreddit_relevance_question = f"Could this subreddit have any connection at all to the following problem? {problem}"
-relevance_question = f"Does this person have a problem that is closely related to this one? {problem}"
-definite_question = f"Is this person interested in the following problem? {problem}"
+from step_one.openAI import restate_need
 
 
 keyphrases = ["walk", "walking alone", "unsafe walking", "danger when walking", "walking around by myself", "walk by myself"]
@@ -20,21 +15,33 @@ for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
 
 def find_posts():
-    args = {
-        "verbose": True,
-        "limit": 10,
-        "sort": "relevance",
-        "make_hard_links": True,
-        # "subreddit": ["all"],
-        "search": problem,
-    }
+    need = "Protect oneself from government surveillance."
+    need_from_user_perspective = restate_need(need)
+    print("restated need:", need_from_user_perspective)
+    # need_from_user_perspective = "I want to develop new habits."
+    # subreddit_relevance_question = f"Could this subreddit have any connection at all to the following problem? {need}"
+    # relevance_question = f"Does this person have a problem that is closely related to this one? {need}"
+    definite_question = f"Is this person interested in the following problem? {need}"
 
-    config = Configuration()
-    config.process_arguments(args)
+    
+    # args = {
+    #     "verbose": True,
+    #     "limit": 10,
+    #     "sort": "relevance",
+    #     "make_hard_links": True,
+    #     # "subreddit": ["all"],
+    #     "search": need_from_user_perspective,
+    # }
+
+    # config = Configuration()
+    # config.process_arguments(args)
 
     # first_round_posts = search_posts(config)
-    first_round_posts = search_posts_raw(problem)
-    print(f"Found {len(first_round_posts)} posts (round 1).")
+    first_round_posts = search_posts_raw(need_from_user_perspective)
+    print(f"Found {len(first_round_posts)} posts (before removing duplicates).")
+
+    first_round_posts = remove_duplicates(first_round_posts)
+    print(f"Found {len(first_round_posts)} posts (after removing duplicates).")
 
     # for post in first_round_posts:
     #     print(f"https://reddit.com{post['permalink']}")
@@ -93,7 +100,8 @@ def remove_duplicates(posts):
     seen = set()
     result = []
     for post in posts:
-        key = post["permalink"]
+        # Some posts might have the same title, but different selftext
+        key = post["title"] + post["selftext"][:200]
         if key not in seen:
             seen.add(key)
             result.append(post)
