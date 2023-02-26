@@ -3,7 +3,8 @@ from step_one.find import find_posts
 import streamlit as st
 
 POSSIBLE_NEEDS = [
-    "Having trouble developing new habits",
+    "Finding users and determining if a startup problem is real before working on it",
+    "Forming new habits is hard",
     "Want to protect oneself from government surveillance",
     "Feeling unsafe walking alone",
     "Feeling lonely in the cafeteria"
@@ -25,7 +26,7 @@ def get_posts(need):
     return find_posts(need, st.write)
 
 
-need = st.text_input("User problem", key="need", label_visibility="visible")
+need = st.text_input("User problem", key="need", label_visibility="visible", placeholder=INITIAL_NEED)
 
 randomize_need_button = st.button("Randomize need", on_click=randomize_activity, type="secondary")
 
