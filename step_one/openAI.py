@@ -9,7 +9,7 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],
     template="""
-State the following need as the simple title of a blog post from someone who has that need.
+State the following need as the simple title of a blog post from someone who has that problem.
 
 Need: {need}
 
