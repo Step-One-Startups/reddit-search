@@ -9,11 +9,11 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],
     template="""
-State the following need as the simple title of a blog post from someone who has that problem.
+State the following need concisely from the perspective of someone who has that need.
 
 Need: {need}
 
-Title:
+Restated:
 """
 )
 
@@ -64,7 +64,7 @@ Here is the title and summary of a reddit post I am interested in:
 title: {title}
 summary: {summary}
 
-Does the person writing this post have the following problem themselves? {need}
+Does the person writing this post have the following need themselves? {need}
 
 Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Label your true/false answer with \"Answer:\".""" ,
 )
