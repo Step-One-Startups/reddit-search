@@ -17,13 +17,15 @@ def filter_by_keyphrase(posts, keyphrases):
     return filtered_posts
 
 def filter_by_need(posts, need):
-    ray.init()
-    results = [] 
-    for post in posts:
-        results.append(has_need.remote(post, need))
-    output = ray.get(results)
-    ray.shutdown()
-    filtered_posts = [post for post in output if post]
+    try:
+        ray.init()
+        results = [] 
+        for post in posts:
+            results.append(has_need.remote(post, need))
+        output = ray.get(results)
+        filtered_posts = [post for post in output if post]
+    finally:
+        ray.shutdown()
 
     return filtered_posts
 

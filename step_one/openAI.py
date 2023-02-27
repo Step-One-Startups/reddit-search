@@ -9,11 +9,11 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],
     template="""
-State the following need as the simple title of a reddit post from the perspective of someone who has the problem.
+State the following need as the simple title of a blog post from someone who has that need.
 
 Need: {need}
 
-Blog post title: 
+Title:
 """
 )
 
@@ -29,7 +29,9 @@ title: {title}
 
 contents: {selftext}
 
-Summarize this post in a paragraph. Who is this person? What are they asking for?""",
+Who is this person? What are they asking for?
+
+Summary:""",
 )
 
 def extract_need(post):
@@ -80,7 +82,11 @@ def discern_applicability(post, need):
     print(post["summary"])
     # print(formatted_discern_applicability_prompt)
     print(full_answer)
-    answer = full_answer.lower().split("answer:")[1].strip()
+    answer_chunks = full_answer.lower().split("answer:")
+    if len(answer_chunks) < 2:
+        # If the answer is not formatted correctly, return False
+        return False
+    answer = answer_chunks[1].strip()
     # print(answer)
     return len(answer) >= 4 and answer[0:4] == "true"
 

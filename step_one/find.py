@@ -37,9 +37,6 @@ def find_posts(provided_need: str, log=print):
 
     # first_round_posts = search_posts(config)
     first_round_posts = search_posts_raw(need_from_user_perspective)
-    log(f"Found {len(first_round_posts)} posts (before removing duplicates).")
-
-    first_round_posts = remove_duplicates(first_round_posts)
     log(f"Found {len(first_round_posts)} posts (after removing duplicates).")
 
     # for post in first_round_posts:
@@ -75,8 +72,6 @@ def find_posts(provided_need: str, log=print):
 def search_subreddits(config: Configuration, question: str):
     original_posts = search_posts(config)
 
-    original_posts = remove_duplicates(original_posts)
-
     most_relevant_posts = original_posts[:NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE]
     less_relevant_posts = original_posts[NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE:]
     
@@ -88,21 +83,3 @@ def search_subreddits(config: Configuration, question: str):
 
     return filter_by_need(posts, question)
             
-
-def remove_duplicates(posts):
-    """
-    Removes duplicates from a list based on a key function.
-
-    :param lst: The list to remove duplicates from.
-    :param key_func: The function to extract the key from each item in the list.
-    :return: A list containing only the unique items.
-    """
-    seen = set()
-    result = []
-    for post in posts:
-        # Some posts might have the same title, but different selftext
-        key = post["title"] + post["selftext"][:200]
-        if key not in seen:
-            seen.add(key)
-            result.append(post)
-    return result
