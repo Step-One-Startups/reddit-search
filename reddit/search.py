@@ -5,7 +5,7 @@ from reddit.bdfr.logger import make_console_logging_handler, silence_module_logg
 import requests
 import ray
 
-from step_one.openAI import generate_user_groups, subreddit_is_relevant
+from step_one.openAI import generate_user_groups, score_subreddit_relevance
 
 
 def search_posts(config: Configuration):
@@ -96,7 +96,7 @@ def rank_subreddits(subreddits, need):
         ray.init()
         results = []
         for subreddit in subreddits:
-            results.append(subreddit_is_relevant.remote(subreddit, need))
+            results.append(score_subreddit_relevance.remote(subreddit, need))
         output = ray.get(results)
     finally:
         ray.shutdown()

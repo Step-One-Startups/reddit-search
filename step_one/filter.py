@@ -1,4 +1,4 @@
-from step_one.openAI import discern_applicability, extract_need
+from step_one.openAI import discern_applicability, summarize, score_post_relevance
 import ray
 import praw
 import socket
@@ -25,14 +25,14 @@ def filter_by_need(posts, need):
         filtered_posts = [post for post in output if post]
     finally:
         ray.shutdown()
-
-    return filtered_posts
+    return sorted(filtered_posts, key=lambda post: post["score"], reverse=True)
 
 @ray.remote
-def has_need(post, question):
-    if discern_applicability(post, question):
+def has_need(post, need):
+    if discern_applicability(post, need):
         # Summarize the post on behalf of the user.
-        post["summary"] = extract_need(post)
+        post["summary"] = summarize(post, need)
+        post["score"] = score_post_relevance(post, need)
         return post
     return None
 

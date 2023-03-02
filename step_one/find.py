@@ -44,7 +44,7 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
         num_posts_to_include = TOTAL_POSTS_TO_SEARCH * subreddit["score"]**2 // total_score
         first_round_posts += search_posts_raw(need_from_user_perspective, subreddit["name"], num_posts_to_include)
     first_round_posts += search_posts_raw(need_from_user_perspective, None, 30)
-    log(f"Found {len(first_round_posts)} posts (after removing duplicates).")
+    log(f"Checking {len(first_round_posts)} posts.")
 
     # for post in first_round_posts:
     #     print(f"https://reddit.com{post['permalink']}")
@@ -89,4 +89,3 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
 #     posts = most_relevant_posts + less_relevant_posts
 
 #     return filter_by_need(posts, question)
-            

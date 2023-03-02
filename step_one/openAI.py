@@ -5,6 +5,7 @@ import ray
 import json
 import os
 import requests
+import string
 
 def call_chatgpt(prompt_messages: List[str]):
     messages = [{"role": "user", "content": message} for message in prompt_messages]
@@ -64,38 +65,41 @@ def generate_user_groups(need) -> List[str]:
     except:
         return [stripped_answer, None, None]
 
-extract_need_prompt = PromptTemplate(
-    input_variables=["title", "selftext"],
+summarize_post_prompt = PromptTemplate(
+    input_variables=["title", "selftext", "need"],
     template="""Here is a reddit post I am interested in:
 
 title: {title}
 
 contents: {selftext}
 
-Who is this person? What are they asking for?
+Who is this person? What are they asking for? How does this post relate to the following need?
+
+Need: {need}
 
 Summary:""",
 )
 
-def extract_need(post):
+def summarize(post, need):
     try:
         post_content = post["selftext"] or "No content"
-        formatted_extract_need_prompt = extract_need_prompt.format(
+        formatted_summarize_post_prompt = summarize_post_prompt.format(
             title=post["title"],
-            selftext=post_content
+            selftext=post_content,
+            need=need
         )
-        return call_chatgpt(["You are a helpful AI assistant.", formatted_extract_need_prompt]).strip()
-        # return curie_llm(formatted_extract_need_prompt).strip()
+        return call_chatgpt(["You are a helpful AI assistant.", formatted_summarize_post_prompt]).strip()
+        # return curie_llm(formatted_summarize_post_prompt).strip()
     except:
         try:
             # If it failed because the post was too long, truncate it and try again.
             if len(post_content) > 4000:
                 post_content = post_content[:4000]
-                formatted_extract_need_prompt = extract_need_prompt.format(
+                formatted_summarize_post_prompt = summarize_post_prompt.format(
                     title=post["title"],
                     selftext=post_content
                 )
-                return call_chatgpt(["You are a helpful AI assistant.", formatted_extract_need_prompt]).strip()
+                return call_chatgpt(["You are a helpful AI assistant.", formatted_summarize_post_prompt]).strip()
         except:
             return None
     
@@ -132,16 +136,11 @@ def discern_applicability(post, need):
                     content=post_content,
                     need=need
                 )
-                return call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
+                full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
         except:
-            return None
+            return False
     # full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
     post["full_answer"] = full_answer
-    # print("\n\n")
-    # print(f"https://reddit.com{post['permalink']}")
-    # print(post["summary"])
-    # print(formatted_discern_applicability_prompt)
-    # print(full_answer)
     answer_chunks = full_answer.lower().split("answer:")
     if len(answer_chunks) < 2:
         # If the answer is not formatted correctly, return False
@@ -150,7 +149,46 @@ def discern_applicability(post, need):
     # print(answer)
     return len(answer) >= 4 and answer[0:4] == "true"
 
-subreddit_is_relevant_prompt = PromptTemplate(
+score_post_relevance_prompt = PromptTemplate(
+    input_variables=["title", "summary", "need"],
+    template="""
+Here is the title and summary of a reddit post I am interested in:
+
+title: {title}
+summary: {summary}
+
+On a scale of 1 to 10, how likely is it that the person writing this post has the following need? If you are not sure, make your best guess, or answer 1.
+
+Need: {need}
+
+Explain your reasoning before you answer, then answer one integer between 1 and 10 in a separate paragraph. Label your integer answer with \"Answer:\".""" ,
+)
+
+def score_post_relevance(post, need):
+    formatted_score_post_relevance_prompt = score_post_relevance_prompt.format(
+        title=post["title"],
+        summary=post["summary"],
+        need=need
+    )
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_score_post_relevance_prompt]).strip()
+    
+    try:
+        answer_relevance_string = full_answer.lower().split("answer:")[1].strip().translate(str.maketrans('', '', string.punctuation))
+    except:
+        print("\n\n")
+        print("full_answer", full_answer)
+        return 1
+    answer_relevance = 1
+    try:
+        answer_relevance = int(answer_relevance_string)
+    except:
+        print("\n\n")
+        print(f"answer_relevance_string `{answer_relevance_string}`")
+        return 1
+    print("answer_relevance", answer_relevance)
+    return answer_relevance
+
+score_subreddit_relevance_prompt = PromptTemplate(
     input_variables=["subreddit", "subreddit_description", "need"],
     template="""
 Here is a subreddit I am interested in:
@@ -167,18 +205,24 @@ Explain your reasoning before you answer, then answer one integer between 1 and 
 )
 
 @ray.remote
-def subreddit_is_relevant(subreddit, need):
-    formatted_subreddit_is_relevant_prompt = subreddit_is_relevant_prompt.format(
+def score_subreddit_relevance(subreddit, need):
+    formatted_score_subreddit_relevance_prompt = score_subreddit_relevance_prompt.format(
         subreddit=subreddit["name"],
         subreddit_description=subreddit["description"],
         need=need
     )
-    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_subreddit_is_relevant_prompt]).strip()
-    # full_answer = davinci_llm(formatted_subreddit_is_relevant_prompt).strip()
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_score_subreddit_relevance_prompt]).strip()
+    # full_answer = davinci_llm(formatted_score_subreddit_relevance_prompt).strip()
     print(subreddit["name"])
     print(subreddit["description"])
     print(full_answer)
-    answer_relevance_string = full_answer.lower().split("answer:")[1].strip()
+    try:
+        answer_relevance_string = full_answer.lower().split("answer:")[1].strip().translate(str.maketrans('', '', string.punctuation))
+    except:
+        print("\n\n")
+        print("full_answer", full_answer)
+        subreddit["score"] = 1
+        return subreddit
     print(answer_relevance_string)
     answer_relevance = 0
     try:
