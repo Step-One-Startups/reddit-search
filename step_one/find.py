@@ -44,7 +44,7 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
         # Bias toward the subreddits with the highest scores (most relevant).
         num_posts_to_include = TOTAL_POSTS_TO_SEARCH * subreddit["score"]**2 // total_score
         first_round_posts += search_posts_raw(need_from_user_perspective, subreddit["name"], num_posts_to_include)
-    first_round_posts += search_posts_raw(need_from_user_perspective, None, 10)
+    first_round_posts += search_posts_raw(need_from_user_perspective, None, 30)
     log(f"Found {len(first_round_posts)} posts (after removing duplicates).")
 
     # for post in first_round_posts:
