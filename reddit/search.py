@@ -69,7 +69,7 @@ def search_subreddits(problem: str):
     try:
         for user_group in user_groups:
             response = requests.get(
-                f"http://www.reddit.com/subreddits/search.json?q={user_group}&limit=3",
+                f"http://www.reddit.com/subreddits/search.json?q={user_group}&limit=5",
                 headers = {'User-agent': 'step-one bot 0.1'}
             ).json()
             raw_subreddits = response["data"]["children"]
@@ -88,7 +88,7 @@ def search_subreddits(problem: str):
     finally:
         logger.info("Search complete")
         # return three most relevant subreddits
-        return rank_subreddits(subreddits, problem)[:3]
+        return rank_subreddits(subreddits, problem)[:6]
     
 def rank_subreddits(subreddits, need):
     # Rank subreddits by how relevant they are to the need

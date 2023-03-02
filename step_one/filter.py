@@ -30,8 +30,9 @@ def filter_by_need(posts, need):
 
 @ray.remote
 def has_need(post, question):
-    post["summary"] = extract_need(post)
-    if post["summary"] != None and discern_applicability(post, question):
+    if discern_applicability(post, question):
+        # Summarize the post on behalf of the user.
+        post["summary"] = extract_need(post)
         return post
     return None
 

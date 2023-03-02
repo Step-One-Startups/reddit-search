@@ -7,9 +7,9 @@ from step_one.openAI import restate_need
 
 keyphrases = ["walk", "walking alone", "unsafe walking", "danger when walking", "walking around by myself", "walk by myself"]
 
-DEFAULT_NEED = "Protect oneself from government surveillance."
+DEFAULT_NEED = "Forming new habits is hard"
 
-TOTAL_POSTS_TO_SEARCH = 50
+TOTAL_POSTS_TO_SEARCH = 100
 
 for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
@@ -69,8 +69,8 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
 
     for post in posts:
         print(f"https://reddit.com{post['permalink']}")
+        print(post["title"])
         if "summary" in post:
-            # print(post["index"])
             print(post["summary"])
         # print(post)
         print()

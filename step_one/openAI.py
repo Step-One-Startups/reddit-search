@@ -3,6 +3,19 @@ from langchain.llms import OpenAI
 from typing import List
 import ray
 import json
+import os
+import requests
+
+def call_chatgpt(prompt_messages: List[str]):
+    messages = [{"role": "user", "content": message} for message in prompt_messages]
+    data = {"model": "gpt-3.5-turbo", "messages": messages, "temperature": 0}
+    headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"}
+    response = requests.post("https://api.openai.com/v1/chat/completions", data=json.dumps(data), headers=headers)
+    try:
+        return response.json()["choices"][0]["message"]["content"]
+    except:
+        print("Error: " + response.json())
+        return None
 
 
 curie_llm = OpenAI(model_name="text-curie-001", temperature=0)
@@ -17,9 +30,26 @@ Problem: {problem}
 User groups:""",
 )
 
+restate_need_prompt = PromptTemplate(
+    input_variables=["need"],
+    template="""
+Pretend you have the following need. State that need concisely in a single sentence from your perspective. The first word should be "I".
+
+Need: {need}
+
+Restated:
+"""
+)
+
+def restate_need(need):
+    formatted_restate_need_prompt = restate_need_prompt.format(need=need)
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_restate_need_prompt])
+    return full_answer.strip(' "\'\t\r\n')
+
 def generate_user_groups(need) -> List[str]:
     formatted_generate_user_group_prompt = generate_user_group_prompt.format(problem=need)
-    full_answer = davinci_llm(formatted_generate_user_group_prompt)
+    # full_answer = davinci_llm(formatted_generate_user_group_prompt)
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_generate_user_group_prompt])
 
     print(full_answer)
 
@@ -33,21 +63,6 @@ def generate_user_groups(need) -> List[str]:
         return json.loads(stripped_answer)
     except:
         return [stripped_answer, None, None]
-
-restate_need_prompt = PromptTemplate(
-    input_variables=["need"],
-    template="""
-State the following need concisely from the perspective of someone who has that need.
-
-Need: {need}
-
-Restated:
-"""
-)
-
-def restate_need(need):
-    formatted_restate_need_prompt = restate_need_prompt.format(need=need)
-    return davinci_llm(formatted_restate_need_prompt).strip(' "\'\t\r\n')
 
 extract_need_prompt = PromptTemplate(
     input_variables=["title", "selftext"],
@@ -69,28 +84,29 @@ def extract_need(post):
             title=post["title"],
             selftext=post_content
         )
-        return curie_llm(formatted_extract_need_prompt).strip()
+        return call_chatgpt(["You are a helpful AI assistant.", formatted_extract_need_prompt]).strip()
+        # return curie_llm(formatted_extract_need_prompt).strip()
     except:
         try:
             # If it failed because the post was too long, truncate it and try again.
-            if len(post_content) > 2000:
-                post_content = post_content[:2000]
+            if len(post_content) > 4000:
+                post_content = post_content[:4000]
                 formatted_extract_need_prompt = extract_need_prompt.format(
                     title=post["title"],
                     selftext=post_content
                 )
-                return curie_llm(formatted_extract_need_prompt).strip()
+                return call_chatgpt(["You are a helpful AI assistant.", formatted_extract_need_prompt]).strip()
         except:
             return None
     
 
 discern_applicability_prompt = PromptTemplate(
-    input_variables=["title", "summary", "need"],
+    input_variables=["title", "content", "need"],
     template="""
-Here is the title and summary of a reddit post I am interested in:
+Here is the title and content of a reddit post I am interested in:
 
 title: {title}
-summary: {summary}
+content: {content}
 
 Does the person writing this post have the following need themselves? {need}
 
@@ -98,12 +114,28 @@ Explain your reasoning before you answer, then answer \"true\" or \"false\" in a
 )
 
 def discern_applicability(post, need):
+    post_content = post["selftext"] or "No content"
     formatted_discern_applicability_prompt = discern_applicability_prompt.format(
         title=post["title"],
-        summary=post["summary"],
+        content=post_content,
         need=need
     )
-    full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
+    try:
+        full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
+    except:
+        try:
+            # If it failed because the post was too long, truncate it and try again.
+            if len(post_content) > 4000:
+                post_content = post_content[:4000]
+                formatted_discern_applicability_prompt = discern_applicability_prompt.format(
+                    title=post["title"],
+                    content=post_content,
+                    need=need
+                )
+                return call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
+        except:
+            return None
+    # full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
     post["full_answer"] = full_answer
     # print("\n\n")
     # print(f"https://reddit.com{post['permalink']}")
@@ -141,7 +173,8 @@ def subreddit_is_relevant(subreddit, need):
         subreddit_description=subreddit["description"],
         need=need
     )
-    full_answer = davinci_llm(formatted_subreddit_is_relevant_prompt).strip()
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_subreddit_is_relevant_prompt]).strip()
+    # full_answer = davinci_llm(formatted_subreddit_is_relevant_prompt).strip()
     print(subreddit["name"])
     print(subreddit["description"])
     print(full_answer)
