@@ -15,16 +15,11 @@ for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
 
 def find_posts(need:str=DEFAULT_NEED, log=print):
-    # need_from_user_perspective = restate_need(need)
-    # log("restated need:", need_from_user_perspective)
+    need_from_user_perspective = restate_need(need)
+    log("restated need:", need_from_user_perspective)
 
     subreddits = search_subreddits(need)
-    return
     log(len(subreddits), "subreddits found.")
-    # need_from_user_perspective = "I want to develop new habits."
-    # subreddit_relevance_question = f"Could this subreddit have any connection at all to the following problem? {need}"
-    # relevance_question = f"Does this person have a problem that is closely related to this one? {need}"
-
     
     # args = {
     #     "verbose": True,
@@ -48,8 +43,8 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
         log(f"r/{subreddit['name']}")
         # Bias toward the subreddits with the highest scores (most relevant).
         num_posts_to_include = TOTAL_POSTS_TO_SEARCH * subreddit["score"]**2 // total_score
-        subreddit_posts = search_posts_raw(need_from_user_perspective, subreddit["name"], num_posts_to_include)
-        first_round_posts += subreddit_posts
+        first_round_posts += search_posts_raw(need_from_user_perspective, subreddit["name"], num_posts_to_include)
+    first_round_posts += search_posts_raw(need_from_user_perspective, None, 10)
     log(f"Found {len(first_round_posts)} posts (after removing duplicates).")
 
     # for post in first_round_posts:

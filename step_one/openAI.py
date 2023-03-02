@@ -1,6 +1,8 @@
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAI
+from typing import List
 import ray
+import json
 
 
 curie_llm = OpenAI(model_name="text-curie-001", temperature=0)
@@ -8,25 +10,29 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 
 generate_user_group_prompt = PromptTemplate(
     input_variables=["problem"],
-    template="""List 10 user groups who have the following problem and a short reason why they need it. Below the list, mark the title of the group that has the problem the most with the label "Has it the most:".
+    template="""List 7 user groups who have the following problem and a short reason why they have it. Below the list, list the top 3 groups who have the problem the most in the following syntax: ["user group 1", "user group 2", "user group 3"], and mark the array with the label "3 most:".
 
 Problem: {problem}
 
 User groups:""",
 )
 
-def generate_user_group(need):
+def generate_user_groups(need) -> List[str]:
     formatted_generate_user_group_prompt = generate_user_group_prompt.format(problem=need)
     full_answer = davinci_llm(formatted_generate_user_group_prompt)
 
     print(full_answer)
 
-    answer_chunks = full_answer.lower().split("has it the most:")
+    answer_chunks = full_answer.lower().split("3 most:")
     if len(answer_chunks) < 2:
         # If the answer is not formatted correctly, return None
         return None
-    
-    return answer_chunks[1].strip(' "\'\t\r\n')
+    stripped_answer = answer_chunks[1].strip(' "\'\t\r\n')
+
+    try:
+        return json.loads(stripped_answer)
+    except:
+        return [stripped_answer, None, None]
 
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],

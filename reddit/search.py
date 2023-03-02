@@ -5,7 +5,7 @@ from reddit.bdfr.logger import make_console_logging_handler, silence_module_logg
 import requests
 import ray
 
-from step_one.openAI import generate_user_group, subreddit_is_relevant
+from step_one.openAI import generate_user_groups, subreddit_is_relevant
 
 
 def search_posts(config: Configuration):
@@ -49,38 +49,39 @@ def search_posts_raw(problem: str, subreddit: str = None, num_posts_to_include: 
         logger.info("Search complete")
         return remove_duplicates(posts)
 
-def remove_duplicates(posts):
+def remove_duplicates(list: List[dict]):
     seen = set()
     result = []
-    for post in posts:
-        # Some posts might have the same title, but different selftext
-        key = post["key"]
+    for item in list:
+        key = item["key"]
         if key not in seen:
             seen.add(key)
-            result.append(post)
+            result.append(item)
     return result
 
 def search_subreddits(problem: str):
     subreddits = []
 
-    user_group = generate_user_group(problem)
-    return
-    if user_group is None:
+    user_groups = generate_user_groups(problem)
+    if user_groups is None:
         return subreddits
 
     try:
-        response = requests.get(
-            f"http://www.reddit.com/subreddits/search.json?q={user_group}&limit=5",
-            headers = {'User-agent': 'step-one bot 0.1'}
-        ).json()
-        raw_subreddits = response["data"]["children"]
-        for raw_subreddit in raw_subreddits:
-            subreddits.append({
-                "name": raw_subreddit["data"]["display_name"],
-                "description": raw_subreddit["data"]["public_description"],
-                "subscribers": raw_subreddit["data"]["subscribers"],
-                "url": raw_subreddit["data"]["url"],
-            })
+        for user_group in user_groups:
+            response = requests.get(
+                f"http://www.reddit.com/subreddits/search.json?q={user_group}&limit=3",
+                headers = {'User-agent': 'step-one bot 0.1'}
+            ).json()
+            raw_subreddits = response["data"]["children"]
+            for raw_subreddit in raw_subreddits:
+                subreddits.append({
+                    "key": raw_subreddit["data"]["display_name"],
+                    "name": raw_subreddit["data"]["display_name"],
+                    "description": raw_subreddit["data"]["public_description"],
+                    "subscribers": raw_subreddit["data"]["subscribers"],
+                    "url": raw_subreddit["data"]["url"],
+                })
+        subreddits = remove_duplicates(subreddits)
     except Exception:
         logger.exception("search_subreddits exited unexpectedly")
         raise
