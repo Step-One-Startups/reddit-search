@@ -19,7 +19,6 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
     log("restated need:", need_from_user_perspective)
 
     subreddits = search_subreddits(need)
-    log(len(subreddits), "subreddits found.")
     
     # args = {
     #     "verbose": True,
@@ -68,13 +67,13 @@ def find_posts(need:str=DEFAULT_NEED, log=print):
     posts = filter_by_need(first_round_posts, need)
     log(f"Found {len(posts)} posts after filtering by need.")
 
-    # for post in posts:
-    #     print(f"https://reddit.com{post['permalink']}")
-    #     if "summary" in post:
-    #         # print(post["index"])
-    #         print(post["summary"])
-    #     # print(post)
-    #     print()
+    for post in posts:
+        print(f"https://reddit.com{post['permalink']}")
+        if "summary" in post:
+            # print(post["index"])
+            print(post["summary"])
+        # print(post)
+        print()
     return posts
 
 # def search_subreddits(config: Configuration, question: str):
