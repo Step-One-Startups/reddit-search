@@ -5,7 +5,7 @@ from reddit.bdfr.logger import make_console_logging_handler, silence_module_logg
 import requests
 import ray
 
-from step_one.openAI import generate_user_groups, score_subreddit_relevance
+from step_one.openAI import score_subreddit_relevance
 
 
 def search_posts(config: Configuration):
@@ -59,12 +59,8 @@ def remove_duplicates(list: List[dict]):
             result.append(item)
     return result
 
-def search_subreddits(problem: str):
+def search_subreddits(need: str, user_groups: List[str] = []):
     subreddits = []
-
-    user_groups = generate_user_groups(problem)
-    if user_groups is None:
-        return subreddits
 
     try:
         for user_group in user_groups:
@@ -88,7 +84,7 @@ def search_subreddits(problem: str):
     finally:
         logger.info("Search complete")
         # return three most relevant subreddits
-        return rank_subreddits(subreddits, problem)[:6]
+        return rank_subreddits(subreddits, need)[:6]
     
 def rank_subreddits(subreddits, need):
     # Rank subreddits by how relevant they are to the need

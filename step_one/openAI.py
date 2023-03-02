@@ -56,8 +56,8 @@ def generate_user_groups(need) -> List[str]:
 
     answer_chunks = full_answer.lower().split("3 most:")
     if len(answer_chunks) < 2:
-        # If the answer is not formatted correctly, return None
-        return None
+        # If the answer is not formatted correctly, return empty array
+        return []
     stripped_answer = answer_chunks[1].strip(' "\'\t\r\n')
 
     try:
