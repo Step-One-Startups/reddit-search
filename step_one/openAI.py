@@ -6,6 +6,28 @@ import ray
 curie_llm = OpenAI(model_name="text-curie-001", temperature=0)
 davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 
+generate_user_group_prompt = PromptTemplate(
+    input_variables=["problem"],
+    template="""List 10 user groups who have the following problem and a short reason why they need it. Below the list, mark the title of the group that has the problem the most with the label "Has it the most:".
+
+Problem: {problem}
+
+User groups:""",
+)
+
+def generate_user_group(need):
+    formatted_generate_user_group_prompt = generate_user_group_prompt.format(problem=need)
+    full_answer = davinci_llm(formatted_generate_user_group_prompt)
+
+    print(full_answer)
+
+    answer_chunks = full_answer.lower().split("has it the most:")
+    if len(answer_chunks) < 2:
+        # If the answer is not formatted correctly, return None
+        return None
+    
+    return answer_chunks[1].strip(' "\'\t\r\n')
+
 restate_need_prompt = PromptTemplate(
     input_variables=["need"],
     template="""
@@ -77,11 +99,11 @@ def discern_applicability(post, need):
     )
     full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
     post["full_answer"] = full_answer
-    print("\n\n")
-    print(f"https://reddit.com{post['permalink']}")
-    print(post["summary"])
+    # print("\n\n")
+    # print(f"https://reddit.com{post['permalink']}")
+    # print(post["summary"])
     # print(formatted_discern_applicability_prompt)
-    print(full_answer)
+    # print(full_answer)
     answer_chunks = full_answer.lower().split("answer:")
     if len(answer_chunks) < 2:
         # If the answer is not formatted correctly, return False
@@ -90,8 +112,8 @@ def discern_applicability(post, need):
     # print(answer)
     return len(answer) >= 4 and answer[0:4] == "true"
 
-filter_subreddit_prompt = PromptTemplate(
-    input_variables=["subreddit", "subreddit_description", "question"],
+subreddit_is_relevant_prompt = PromptTemplate(
+    input_variables=["subreddit", "subreddit_description", "need"],
     template="""
 Here is a subreddit I am interested in:
 {subreddit}
@@ -99,25 +121,30 @@ Here is a subreddit I am interested in:
 Here is the description of the subreddit:
 {subreddit_description}
 
-Please answer the following question. If you are not sure, answer False:
+Please answer the following question. If you are not sure, answer 1:
 
-{question}
+On a scale of 1 to 10, how likely is it than anyone in this subreddit has the following need? {need}
 
-Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Label your true/false answer with \"Answer:\".""" ,
+Explain your reasoning before you answer, then answer one integer between 1 and 10 in a separate paragraph. Label your integer answer with \"Answer:\".""" ,
 )
 
 @ray.remote
-def subreddit_is_relevant(subreddit_info, question):
-    formatted_discern_filter_subreddit_prompt = filter_subreddit_prompt.format(
-        subreddit=subreddit_info["name"],
-        subreddit_description=subreddit_info["description"],
-        question=question
+def subreddit_is_relevant(subreddit, need):
+    formatted_subreddit_is_relevant_prompt = subreddit_is_relevant_prompt.format(
+        subreddit=subreddit["name"],
+        subreddit_description=subreddit["description"],
+        need=need
     )
-    full_answer = davinci_llm(formatted_discern_filter_subreddit_prompt).strip()
-    print(subreddit_info["name"])
-    print(subreddit_info["description"])
+    full_answer = davinci_llm(formatted_subreddit_is_relevant_prompt).strip()
+    print(subreddit["name"])
+    print(subreddit["description"])
     print(full_answer)
-    answer = full_answer.lower().split("answer:")[1].strip()
-    if len(answer) >= 4 and answer[0:4] == "true":
-        return subreddit_info["name"]
-    return None
+    answer_relevance_string = full_answer.lower().split("answer:")[1].strip()
+    print(answer_relevance_string)
+    answer_relevance = 0
+    try:
+        answer_relevance = int(answer_relevance_string)
+    except:
+        pass
+    subreddit["score"] = answer_relevance
+    return subreddit

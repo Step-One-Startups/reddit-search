@@ -1,23 +1,26 @@
-import json
-import sys
 from reddit.configuration import Configuration
-from reddit.search import search_posts, search_posts_raw
+from reddit.search import search_posts_raw, search_subreddits
 
-from step_one.filter import filter_by_keyphrase, filter_by_need, filter_subreddits
+from step_one.filter import filter_by_need
 from step_one.openAI import restate_need
 
 
 keyphrases = ["walk", "walking alone", "unsafe walking", "danger when walking", "walking around by myself", "walk by myself"]
 
-NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE = 10
+DEFAULT_NEED = "Protect oneself from government surveillance."
+
+TOTAL_POSTS_TO_SEARCH = 50
 
 for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
 
-def find_posts(provided_need: str, log=print):
-    need = provided_need or "Protect oneself from government surveillance."
-    need_from_user_perspective = restate_need(need)
-    log("restated need:", need_from_user_perspective)
+def find_posts(need:str=DEFAULT_NEED, log=print):
+    # need_from_user_perspective = restate_need(need)
+    # log("restated need:", need_from_user_perspective)
+
+    subreddits = search_subreddits(need)
+    return
+    log(len(subreddits), "subreddits found.")
     # need_from_user_perspective = "I want to develop new habits."
     # subreddit_relevance_question = f"Could this subreddit have any connection at all to the following problem? {need}"
     # relevance_question = f"Does this person have a problem that is closely related to this one? {need}"
@@ -25,10 +28,10 @@ def find_posts(provided_need: str, log=print):
     
     # args = {
     #     "verbose": True,
-    #     "limit": 10,
+    #     "limit": 2,
     #     "sort": "relevance",
     #     "make_hard_links": True,
-    #     # "subreddit": ["all"],
+    #     "subreddit": subreddit_names,
     #     "search": need_from_user_perspective,
     # }
 
@@ -36,7 +39,17 @@ def find_posts(provided_need: str, log=print):
     # config.process_arguments(args)
 
     # first_round_posts = search_posts(config)
-    first_round_posts = search_posts_raw(need_from_user_perspective)
+
+    total_score = sum([subreddit["score"]**2 for subreddit in subreddits])
+
+    first_round_posts = []
+    log("Searching the following subreddits:")
+    for subreddit in subreddits:
+        log(f"r/{subreddit['name']}")
+        # Bias toward the subreddits with the highest scores (most relevant).
+        num_posts_to_include = TOTAL_POSTS_TO_SEARCH * subreddit["score"]**2 // total_score
+        subreddit_posts = search_posts_raw(need_from_user_perspective, subreddit["name"], num_posts_to_include)
+        first_round_posts += subreddit_posts
     log(f"Found {len(first_round_posts)} posts (after removing duplicates).")
 
     # for post in first_round_posts:
@@ -60,26 +73,26 @@ def find_posts(provided_need: str, log=print):
     posts = filter_by_need(first_round_posts, need)
     log(f"Found {len(posts)} posts after filtering by need.")
 
-    for post in posts:
-        print(f"https://reddit.com{post['permalink']}")
-        if "summary" in post:
-            # print(post["index"])
-            print(post["summary"])
-        # print(post)
-        print()
+    # for post in posts:
+    #     print(f"https://reddit.com{post['permalink']}")
+    #     if "summary" in post:
+    #         # print(post["index"])
+    #         print(post["summary"])
+    #     # print(post)
+    #     print()
     return posts
 
-def search_subreddits(config: Configuration, question: str):
-    original_posts = search_posts(config)
+# def search_subreddits(config: Configuration, question: str):
+#     original_posts = search_posts(config)
 
-    most_relevant_posts = original_posts[:NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE]
-    less_relevant_posts = original_posts[NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE:]
+#     most_relevant_posts = original_posts[:NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE]
+#     less_relevant_posts = original_posts[NUM_POSTS_INCLUDED_PURELY_BY_RELEVANCE:]
     
-    less_relevant_posts = filter_by_keyphrase(less_relevant_posts, keyphrases)
-    print(f"Found {len(less_relevant_posts)} posts after filtering by keyphrase.")
+#     less_relevant_posts = filter_by_keyphrase(less_relevant_posts, keyphrases)
+#     print(f"Found {len(less_relevant_posts)} posts after filtering by keyphrase.")
 
-    # Add the most relevant posts to the list, even if they don't contain the keyphrase
-    posts = most_relevant_posts + less_relevant_posts
+#     # Add the most relevant posts to the list, even if they don't contain the keyphrase
+#     posts = most_relevant_posts + less_relevant_posts
 
-    return filter_by_need(posts, question)
+#     return filter_by_need(posts, question)
             

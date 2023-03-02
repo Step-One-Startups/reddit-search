@@ -3,6 +3,9 @@ from reddit.archiver import Archiver
 from reddit.configuration import Configuration
 from reddit.bdfr.logger import make_console_logging_handler, silence_module_loggers, logger
 import requests
+import ray
+
+from step_one.openAI import generate_user_group, subreddit_is_relevant
 
 
 def search_posts(config: Configuration):
@@ -19,16 +22,17 @@ def search_posts(config: Configuration):
         logger.info("Search complete")
         return posts
 
-def search_posts_raw(problem: str):
+def search_posts_raw(problem: str, subreddit: str = None, num_posts_to_include: int = 5):
+    subreddit_extension = f"r/{subreddit}/" if subreddit is not None else ""
     posts = []
     try:
-        search_string = f"http://www.reddit.com/search.json?q={problem}&limit=50"
-        print(search_string)
-        response = requests.get(search_string, headers = {'User-agent': 'step-one bot 0.1'}).json()
+        response = requests.get(
+            f"http://www.reddit.com/{subreddit_extension}search.json?q={problem}&limit={num_posts_to_include}&restrict_sr=on",
+            headers = {'User-agent': 'step-one bot 0.1'}
+        ).json()
         raw_posts = response["data"]["children"]
         # print(posts)
         # print("\n\n\n")
-        print(raw_posts[0]["data"].keys())
         for raw_post in raw_posts:
             posts.append({
                 # Add key to remove duplicates
@@ -38,7 +42,6 @@ def search_posts_raw(problem: str):
                 "selftext": raw_post["data"]["selftext"],
                 "permalink": raw_post["data"]["permalink"],
             })
-        print(raw_posts[0]["data"]["subreddit"])
     except Exception:
         logger.exception("search_posts_raw exited unexpectedly")
         raise
@@ -47,13 +50,6 @@ def search_posts_raw(problem: str):
         return remove_duplicates(posts)
 
 def remove_duplicates(posts):
-    """
-    Removes duplicates from a list based on a key function.
-
-    :param lst: The list to remove duplicates from.
-    :param key_func: The function to extract the key from each item in the list.
-    :return: A list containing only the unique items.
-    """
     seen = set()
     result = []
     for post in posts:
@@ -63,3 +59,44 @@ def remove_duplicates(posts):
             seen.add(key)
             result.append(post)
     return result
+
+def search_subreddits(problem: str):
+    subreddits = []
+
+    user_group = generate_user_group(problem)
+    return
+    if user_group is None:
+        return subreddits
+
+    try:
+        response = requests.get(
+            f"http://www.reddit.com/subreddits/search.json?q={user_group}&limit=5",
+            headers = {'User-agent': 'step-one bot 0.1'}
+        ).json()
+        raw_subreddits = response["data"]["children"]
+        for raw_subreddit in raw_subreddits:
+            subreddits.append({
+                "name": raw_subreddit["data"]["display_name"],
+                "description": raw_subreddit["data"]["public_description"],
+                "subscribers": raw_subreddit["data"]["subscribers"],
+                "url": raw_subreddit["data"]["url"],
+            })
+    except Exception:
+        logger.exception("search_subreddits exited unexpectedly")
+        raise
+    finally:
+        logger.info("Search complete")
+        # return three most relevant subreddits
+        return rank_subreddits(subreddits, problem)[:3]
+    
+def rank_subreddits(subreddits, need):
+    # Rank subreddits by how relevant they are to the need
+    try:
+        ray.init()
+        results = []
+        for subreddit in subreddits:
+            results.append(subreddit_is_relevant.remote(subreddit, need))
+        output = ray.get(results)
+    finally:
+        ray.shutdown()
+    return sorted(output, key=lambda x: x["score"], reverse=True)

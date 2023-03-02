@@ -208,6 +208,11 @@ class RedditConnector(metaclass=ABCMeta):
         if not self.config_location:
             raise errors.BulkDownloaderException("Could not find a configuration file to load")
         self.cfg_parser.read(self.config_location)
+        custom_client_id = os.getenv("REDDIT_CLIENT_ID")
+        custom_client_secret = os.getenv("REDDIT_CLIENT_SECRET")
+        if custom_client_id and custom_client_secret:
+            self.cfg_parser.set("DEFAULT", "client_id", custom_client_id)
+            self.cfg_parser.set("DEFAULT", "client_secret", custom_client_secret)
 
     def create_file_logger(self) -> logging.handlers.RotatingFileHandler:
         if self.args.log is None:
