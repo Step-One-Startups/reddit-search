@@ -9,7 +9,7 @@ keyphrases = ["walk", "walking alone", "unsafe walking", "danger when walking", 
 
 DEFAULT_NEED = "Forming new habits is hard"
 
-TOTAL_POSTS_TO_SEARCH = 100
+TOTAL_POSTS_TO_SEARCH = 50
 
 for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
