@@ -112,9 +112,9 @@ Here is the title and content of a reddit post I am interested in:
 title: {title}
 content: {content}
 
-Does the person writing this post definitely have the following need themselves? {need}
+Does the person writing this post explicitly mention that they have the following need? {need}
 
-Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Label your true/false answer with \"Answer:\".""" ,
+Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Answer true if the person has the need, or false otherwise. Label your true/false answer with \"Answer:\".""" ,
 )
 
 def discern_applicability(post, need):
