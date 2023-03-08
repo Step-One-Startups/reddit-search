@@ -49,7 +49,6 @@ def restate_need(need):
 
 def generate_user_groups(need) -> List[str]:
     formatted_generate_user_group_prompt = generate_user_group_prompt.format(problem=need)
-    # full_answer = davinci_llm(formatted_generate_user_group_prompt)
     full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_generate_user_group_prompt])
 
     print(full_answer)
@@ -89,7 +88,6 @@ def summarize(post, need):
             need=need
         )
         return call_chatgpt(["You are a helpful AI assistant.", formatted_summarize_post_prompt]).strip()
-        # return curie_llm(formatted_summarize_post_prompt).strip()
     except:
         try:
             # If it failed because the post was too long, truncate it and try again.
@@ -118,7 +116,7 @@ Need: {need}
 
 Explain your reasoning after the \"Reasoning\" label, then answer when you are done. Label your true/false answer with \"Answer:\" in a separate paragraph.
 
-Reasoning:""" ,
+Reasoning:""",
 )
 
 def discern_applicability(post, need):
@@ -135,14 +133,12 @@ def discern_applicability(post, need):
     if full_answer is None:
         return False
 
-    # full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
     post["full_answer"] = full_answer.strip()
     answer_chunks = full_answer.lower().split("answer:")
     if len(answer_chunks) < 2:
         # If the answer is not formatted correctly, return False
         return False
     answer = answer_chunks[1].strip()
-    # print(answer)
     return len(answer) >= 4 and answer[0:4] == "true"
 
 score_post_relevance_prompt = PromptTemplate(
@@ -208,7 +204,6 @@ def score_subreddit_relevance(subreddit, need):
         need=need
     )
     full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_score_subreddit_relevance_prompt]).strip()
-    # full_answer = davinci_llm(formatted_score_subreddit_relevance_prompt).strip()
     print(subreddit["name"])
     print(subreddit["description"])
     print(full_answer)

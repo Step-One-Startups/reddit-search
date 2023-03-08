@@ -1,26 +1,10 @@
 from typing import List
-from reddit.archiver import Archiver
-from reddit.configuration import Configuration
-from reddit.bdfr.logger import make_console_logging_handler, silence_module_loggers, logger
+from step_one.logger import logger
 import requests
 import ray
 
 from step_one.openAI import score_subreddit_relevance
 
-
-def search_posts(config: Configuration):
-    silence_module_loggers()
-    stream = make_console_logging_handler(config.verbose)
-    posts = []
-    try:
-        reddit_archiver = Archiver(config, [stream])
-        posts = reddit_archiver.download()
-    except Exception:
-        logger.exception("Archiver exited unexpectedly")
-        raise
-    else:
-        logger.info("Search complete")
-        return posts
 
 def search_posts_raw(problem: str, subreddit: str = None, num_posts_to_include: int = 5):
     subreddit_extension = f"r/{subreddit}/" if subreddit is not None else ""
