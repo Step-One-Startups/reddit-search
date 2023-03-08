@@ -13,7 +13,7 @@ Setting up the project should be fairly painless if you're familiar with CLI com
 
 ## Running the CLI locally
 
-From the root directory, run `poetry run step-one`
+From the root directory, run `poetry run step-one "An example problem that you have"`
 
 
 ## Running the WebApp locally
