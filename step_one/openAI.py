@@ -15,7 +15,7 @@ def call_chatgpt(prompt_messages: List[str]):
     try:
         return response.json()["choices"][0]["message"]["content"]
     except:
-        print("Error: " + response.json())
+        print("Error: ", response.json())
         return None
 
 
@@ -112,35 +112,31 @@ Here is the title and content of a reddit post I am interested in:
 title: {title}
 content: {content}
 
-Does the person writing this post explicitly mention that they have the following need? {need}
+Does the person writing this post explicitly mention that they themselves have the following need? Answer \"true\" if they mention they have the following need or \"false\" if they don't.
 
-Explain your reasoning before you answer, then answer \"true\" or \"false\" in a separate paragraph. Answer true if the person has the need, or false otherwise. Label your true/false answer with \"Answer:\".""" ,
+Need: {need}
+
+Explain your reasoning after the \"Reasoning\" label, then answer when you are done. Label your true/false answer with \"Answer:\" in a separate paragraph.
+
+Reasoning:""" ,
 )
 
 def discern_applicability(post, need):
-    post_content = post["selftext"] or "No content"
+    # Truncate the post content to the last 1000 characters to save on tokens
+    post_content = post["selftext"][-4000:] or "No content"
+    print("character count", len(post["selftext"]))
     formatted_discern_applicability_prompt = discern_applicability_prompt.format(
         title=post["title"],
         content=post_content,
         need=need
     )
-    try:
-        full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
-    except:
-        try:
-            # If it failed because the post was too long, truncate it and try again.
-            if len(post_content) > 4000:
-                post_content = post_content[:4000]
-                formatted_discern_applicability_prompt = discern_applicability_prompt.format(
-                    title=post["title"],
-                    content=post_content,
-                    need=need
-                )
-                full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt]).strip()
-        except:
-            return False
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_discern_applicability_prompt])
+
+    if full_answer is None:
+        return False
+
     # full_answer = davinci_llm(formatted_discern_applicability_prompt).strip()
-    post["full_answer"] = full_answer
+    post["full_answer"] = full_answer.strip()
     answer_chunks = full_answer.lower().split("answer:")
     if len(answer_chunks) < 2:
         # If the answer is not formatted correctly, return False
