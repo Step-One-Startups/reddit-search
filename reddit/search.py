@@ -36,7 +36,7 @@ def search_posts_raw(problem: str, subreddit: str = None, num_posts_to_include: 
         for raw_post in raw_posts:
             posts.append({
                 # Add key to remove duplicates
-                "key": raw_post["data"]["author"] + raw_post["data"]["title"],
+                "key": raw_post["data"]["title"] + raw_post["data"]["selftext"][:100],
                 "title": raw_post["data"]["title"],
                 "subreddit": raw_post["data"]["subreddit"],
                 "selftext": raw_post["data"]["selftext"],
