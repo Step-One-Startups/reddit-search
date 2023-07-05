@@ -7,9 +7,9 @@ import os
 import requests
 import string
 
-def call_chatgpt(prompt_messages: List[str]):
+def call_chatgpt(prompt_messages: List[str], model = "gpt-3.5-turbo"):
     messages = [{"role": "user", "content": message} for message in prompt_messages]
-    data = {"model": "gpt-3.5-turbo", "messages": messages, "temperature": 0}
+    data = {"model": model, "messages": messages, "temperature": 0}
     headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"}
     response = requests.post("https://api.openai.com/v1/chat/completions", data=json.dumps(data), headers=headers)
     try:
@@ -24,32 +24,16 @@ davinci_llm = OpenAI(model_name="text-davinci-003", temperature=0)
 
 generate_user_group_prompt = PromptTemplate(
     input_variables=["problem"],
-    template="""List 7 user groups who have the following problem and a short reason why they have it. Below the list, list the top 3 groups who have the problem the most in the following syntax: ["user group 1", "user group 2", "user group 3"], and mark the array with the label "3 most:".
+    template="""List 7 user groups who have the following problem on reddit. Below the list, name the top 3 groups who have the problem the most in the following syntax: ["user group 1", "user group 2", "user group 3"], and mark the array with the label "3 most:".
 
 Problem: {problem}
 
 User groups:""",
 )
 
-restate_need_prompt = PromptTemplate(
-    input_variables=["need"],
-    template="""
-Pretend you have the following need. State that need concisely in a single sentence from your perspective. The first word should be "I".
-
-Need: {need}
-
-Restated:
-"""
-)
-
-def restate_need(need):
-    formatted_restate_need_prompt = restate_need_prompt.format(need=need)
-    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_restate_need_prompt])
-    return full_answer.strip(' "\'\t\r\n')
-
 def generate_user_groups(need) -> List[str]:
     formatted_generate_user_group_prompt = generate_user_group_prompt.format(problem=need)
-    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_generate_user_group_prompt])
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_generate_user_group_prompt], model="gpt-4")
 
     print(full_answer)
 
@@ -203,7 +187,7 @@ def score_subreddit_relevance(subreddit, need):
         subreddit_description=subreddit["description"],
         need=need
     )
-    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_score_subreddit_relevance_prompt]).strip()
+    full_answer = call_chatgpt(["You are a helpful AI assistant.", formatted_score_subreddit_relevance_prompt], model="gpt-3.5-turbo-16k").strip()
     print(subreddit["name"])
     print(subreddit["description"])
     print(full_answer)

@@ -3,11 +3,11 @@ from step_one.find import find_posts
 import streamlit as st
 
 POSSIBLE_NEEDS = [
+    "I want to engineer better large language model prompts",
     "Finding users and determining if a startup problem is real",
     "Forming new habits is hard",
     "Want to protect oneself from government surveillance",
     "Feeling unsafe walking alone",
-    "Feeling lonely in the cafeteria"
 ]
 
 INITIAL_NEED = POSSIBLE_NEEDS[0]

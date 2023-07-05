@@ -1,7 +1,7 @@
 from step_one.search import search_posts_raw, search_subreddits
 
 from step_one.filter import filter_by_need
-from step_one.openAI import generate_user_groups, restate_need
+from step_one.openAI import generate_user_groups
 
 
 keyphrases = ["walk", "walking alone", "unsafe walking", "danger when walking", "walking around by myself", "walk by myself"]
@@ -14,8 +14,6 @@ for i in range(len(keyphrases)):
     keyphrases[i] = keyphrases[i].lower()
 
 def find_posts(need:str=DEFAULT_NEED, log=print):
-    need_from_user_perspective = restate_need(need)
-    log("restated need:", need_from_user_perspective)
 
     user_groups = generate_user_groups(need)
     log("searching for reddits used by the following user groups:")
