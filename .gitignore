@@ -3,3 +3,6 @@ data/**
 *.pyc
 
 .env
+
+json-outputs
+outputs
