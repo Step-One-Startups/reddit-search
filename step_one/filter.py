@@ -1,4 +1,4 @@
-from step_one.openAI import discern_applicability, summarize, score_post_relevance
+from step_one.openAI import score_post_relevance
 import ray
 
 
@@ -13,12 +13,12 @@ def filter_by_keyphrase(posts, keyphrases):
             filtered_posts.append(post)
     return filtered_posts
 
-def filter_by_need(posts, need):
+def score_posts(posts, need):
     try:
         ray.init()
         results = [] 
         for post in posts:
-            results.append(has_need.remote(post, need))
+            results.append(score_post.remote(post, need))
         output = ray.get(results)
         filtered_posts = [post for post in output if post]
     finally:
@@ -26,10 +26,6 @@ def filter_by_need(posts, need):
     return sorted(filtered_posts, key=lambda post: post["score"], reverse=True)
 
 @ray.remote
-def has_need(post, need):
-    if discern_applicability(post, need):
-        # Summarize the post on behalf of the user.
-        post["summary"] = summarize(post, need)
-        post["score"] = score_post_relevance(post, need)
-        return post
-    return None
+def score_post(post, need):
+    post["score"] = score_post_relevance(post, need)
+    return post

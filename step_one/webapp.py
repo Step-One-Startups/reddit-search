@@ -42,6 +42,7 @@ for post in posts:
     with st.container():
         st.subheader(post["title"])
         st.write(f"https://reddit.com{post['permalink']}")
-        st.write(post["summary"])
+        st.write(post["selftext"])
+        st.subheader("Relevance explanation:")
         st.write(post["full_answer"])
         st.write("\n\n\n\n")
