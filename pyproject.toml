@@ -16,11 +16,18 @@ appdirs = "^1.4.4"
 streamlit = "^1.19.0"
 grpcio = "^1.48.2"
 datetime = "^5.1"
-openpipe = "^3.1.1"
+openpipe = "^3.1.2"
 
 [tool.poetry.scripts]
 step-one = "step_one.cli:run"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.2"
+pytest-watch = "^4.2.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = "focus"
 
 [build-system]
 requires = ["poetry-core"]

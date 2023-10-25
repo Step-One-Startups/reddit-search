@@ -15,7 +15,6 @@ Setting up the project should be fairly painless if you're familiar with CLI com
 
 From the root directory, run `poetry run step-one "An example problem that you have"`
 
-
 ## Running the WebApp locally
 
-From the root directory, run `poetry run streamlit run ./webapp.py`
+From the root directory, run `poetry run streamlit run ./step_one/webapp.py`
