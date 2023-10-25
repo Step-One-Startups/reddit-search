@@ -1,3 +1,5 @@
+import time
+from requests import HTTPError
 from openpipe import openai
 from typing import List
 import ray
@@ -10,7 +12,7 @@ def score_post_relevance(post, need):
         messages=[
             {
                 "role": "system",
-                "content": "You are a helpful AI assistant whose job is to determine whether the author of a reddit post is likely to buy a product built to address a specific need.Score the following post on a scale of 1 to 10, where 1 means the author is very unlikely to buy the product and 10 means the author is very likely to buy the product. If they are working on a product that addresses the need, give them a low score. If you aren't sure, give them a score of 1.",
+                "content": "You are a helpful AI assistant whose job is to determine whether the author of a reddit post is likely to buy a product built to address a specific need.Score the following post on a scale of 1 to 3, where 1 means the author is very unlikely to buy the product and 3 means the author is almost certain to buy the product. If they are working on a product that addresses the need, give them a low score. If you aren't sure, give them a score of 1.",
             },
             {
                 "role": "user",
@@ -21,17 +23,15 @@ def score_post_relevance(post, need):
         functions=[
             {
                 "name": "score_post",
-                "description": "Score the post on a scale of 1 to 10, where 1 means the author is very unlikely to buy the product and 10 means the author is very likely to buy the product.",
+                "description": "Score the post on a scale of 1 to 3, where 1 means the author is very unlikely to buy the product and 3 means the author is very likely to buy the product.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "explanation": {"type": "string"},
                         "score": {
                             "type": "number",
                         },
                     },
                     "required": [
-                        "explanation",
                         "score",
                     ],
                 },
@@ -47,23 +47,74 @@ def score_post_relevance(post, need):
         raise Exception(
             "exception occurred while parsing score_post_relevance completion"
         )
-    return arguments["explanation"], arguments["score"]
+    return arguments["score"]
 
 
-def summarize_post(post):
-    completion = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful AI assistant who summarizes reddit posts. Your goal is to summarize the following post in a single paragraph, while including as much detail as possible. Return the summary.",
-            },
-            {
-                "role": "user",
-                "content": f"Title: {post['title']}\n\nBody: {post['selftext']}",
-            },
-        ],
-    )
+def explain_relevance(post, need):
+    num_tries = 0
+    while num_tries < 5:
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful AI assistant whose job is to explain why a reddit post is relevant to a specific need. Explain why the following post is relevant to the need in a single short paragraph.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Need: {need}\n\nTitle: {post['title']}\n\nBody: {post['selftext']}",
+                    },
+                ],
+                openpipe={"tags": {"prompt_id": "explain_relevance"}},
+            )
+            break  # exit loop if the call is successful
+
+        except HTTPError as e:
+            if e.response.status_code in [499, 502]:
+                num_tries += 1
+                # back off as num_tries increases
+                time.sleep(num_tries**2)
+            else:
+                raise
+
+    try:
+        explanation = completion.choices[0].message.content
+    except:
+        print("exception occurred, and here is the completion")
+        print(completion)
+        raise Exception("exception occurred while parsing explain_relevance completion")
+
+    return explanation
+
+
+def summarize_reddit_post(post):
+    num_tries = 0
+    while num_tries < 5:
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful AI assistant who summarizes reddit posts. Your goal is to summarize the following post in a single paragraph, while including as much detail as possible. Return the summary.",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Title: {post['title']}\n\nBody: {post['selftext']}",
+                    },
+                ],
+                openpipe={"tags": {"prompt_id": "summarize_reddit_post"}},
+            )
+            break  # exit loop if the call is successful
+
+        except HTTPError as e:
+            if e.response.status_code in [499, 502]:
+                num_tries += 1
+                # back off as num_tries increases
+                time.sleep(num_tries**2)
+            else:
+                raise
 
     try:
         summary = completion.choices[0].message.content
