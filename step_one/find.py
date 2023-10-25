@@ -11,7 +11,7 @@ POSTS_TO_SEARCH = 100
 
 def find_posts(need: str = POSSIBLE_NEEDS[0], log=print):
     raw_posts = search_posts_raw(need, None, POSTS_TO_SEARCH)
-    log(f"Found {len(raw_posts)} posts."
+    log(f"Found {len(raw_posts)} posts.")
     log(f"Scoring posts on relevance.")
 
     for post in raw_posts:
