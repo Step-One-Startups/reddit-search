@@ -68,7 +68,7 @@ with col[0]:
 st.markdown(
     """
 <style>
-    div[data-testid="column"] div[data-testid="stVerticalBlock"] div[style*="flex-direction: column;"] div[data-testid="stVerticalBlock"] {
+    div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] {
         border: 2px solid #f0f0f0; 
         border-radius: 5px;
         padding: 20px;

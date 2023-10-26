@@ -7,13 +7,13 @@ readme = "README.md"
 packages = [{include = "step_one"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.9.18"
 langchain = "^0.0.92"
 tiktoken = "^0.2.0"
-ray = "^2.2.0"
+streamlit = "^1.28.0"
 praw = "^7.6.1"
 appdirs = "^1.4.4"
-streamlit = "^1.27.2"
+ray = "^2.7.1"
 grpcio = "^1.48.2"
 datetime = "^5.1"
 openpipe = "^3.1.2"
