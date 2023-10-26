@@ -1,8 +1,42 @@
 import streamlit as st
 import pandas as pd
 import random
-from dataclasses import dataclass
-from typing import Any
+
+
+class UsageTracker:
+    def __init__(self):
+        print("tracker initialized")
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
+
+    def clear_usage(self):
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
+
+    def get_usage(self):
+        return {
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+        }
+
+    def add_tokens(self, prompt_tokens, completion_tokens):
+        self.prompt_tokens += prompt_tokens
+        self.completion_tokens += completion_tokens
+
+
+def clear_usage():
+    st.session_state.tracker.clear_usage()
+
+
+def get_usage():
+    return st.session_state.tracker.get_usage()
+
+
+def add_tokens(prompt_tokens, completion_tokens):
+    print("adding tokens")
+    print(prompt_tokens)
+    print(completion_tokens)
+    st.session_state.tracker.add_tokens(prompt_tokens, completion_tokens)
 
 
 POSSIBLE_NEEDS = [
@@ -25,6 +59,9 @@ def initialize_state():
 
     if "scored_posts" not in st.session_state:
         st.session_state.scored_posts = pd.DataFrame({"link": [], "score": []})
+
+    if "tracker" not in st.session_state:
+        st.session_state.tracker = UsageTracker()
 
 
 # Allow the user to quickly see responses for different needs

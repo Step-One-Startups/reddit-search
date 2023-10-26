@@ -5,6 +5,7 @@ from step_one.state_utils import (
     randomize_need,
     clear_recorded_scores,
 )
+from step_one.calculate_cost import calculate_formatted_cost
 
 initialize_state()
 
@@ -28,12 +29,27 @@ randomize_need_button = st.button(
     "Randomize problem", on_click=randomize_need, type="secondary"
 )
 
+posts, prompt_tokens, completion_tokens = get_posts(need)
+
+data = [
+    {"Metric": "Input tokens", "Value": prompt_tokens},
+    {"Metric": "Output tokens", "Value": completion_tokens},
+    {
+        "Metric": "Total cost with GPT-4",
+        "Value": calculate_formatted_cost("gpt_4", prompt_tokens, completion_tokens),
+    },
+    {
+        "Metric": "Total cost with Mistral 7b",
+        "Value": calculate_formatted_cost(
+            "mistral_7b", prompt_tokens, completion_tokens
+        ),
+    },
+]
+
+st.subheader("Total Usage")
+st.dataframe(data=data, use_container_width=True, hide_index=True)
+
 st.header("Results")
-
-# Explain that we are generating the results if we haven't already
-st.write("Searching reddit...")
-
-posts = get_posts(need)
 
 col = st.columns(1)
 
