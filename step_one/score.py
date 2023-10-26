@@ -21,4 +21,6 @@ def score_post(post, need):
     score, usage = score_post_relevance(post, need)
     post["score"] = score
 
+    print("scored post: ", post["permalink"], post["score"])
+
     return post, usage

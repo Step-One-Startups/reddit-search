@@ -33,9 +33,6 @@ def get_usage():
 
 
 def add_tokens(prompt_tokens, completion_tokens):
-    print("adding tokens")
-    print(prompt_tokens)
-    print(completion_tokens)
     st.session_state.tracker.add_tokens(prompt_tokens, completion_tokens)
 
 
