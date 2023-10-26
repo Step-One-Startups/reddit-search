@@ -4,6 +4,7 @@ from step_one.summarize import summarize_posts
 from step_one.explain import explain_posts_relevance
 from step_one.export import export_csv, export_json
 from step_one.state_utils import POSSIBLE_NEEDS, clear_usage, get_usage
+from step_one.calculate_cost import calculate_formatted_cost
 import streamlit as st
 import ray
 
@@ -30,7 +31,25 @@ def find_posts(need: str = POSSIBLE_NEEDS[0], log=print):
 
         usage = get_usage()
 
-        print(usage)
+        data = [
+            {"Metric": "Input tokens", "Value": usage["prompt_tokens"]},
+            {"Metric": "Output tokens", "Value": usage["completion_tokens"]},
+            {
+                "Metric": "Total cost with GPT-4",
+                "Value": calculate_formatted_cost(
+                    "gpt_4", usage["prompt_tokens"], usage["completion_tokens"]
+                ),
+            },
+            {
+                "Metric": "Total cost with Mistral 7b",
+                "Value": calculate_formatted_cost(
+                    "mistral_7b", usage["prompt_tokens"], usage["completion_tokens"]
+                ),
+            },
+        ]
+
+        st.subheader("Scoring Usage")
+        st.dataframe(data=data, use_container_width=True, hide_index=True)
 
         posts = sorted(posts, key=lambda post: post["score"], reverse=True)
 
