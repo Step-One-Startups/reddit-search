@@ -9,7 +9,7 @@ from step_one.calculate_cost import calculate_formatted_cost
 
 initialize_state()
 
-st.title("Step One")
+st.title("OpenPipe Reddit Search Demo")
 
 
 @st.cache_data

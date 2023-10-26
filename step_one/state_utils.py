@@ -37,11 +37,11 @@ def add_tokens(prompt_tokens, completion_tokens):
 
 
 POSSIBLE_NEEDS = [
+    "Forming new habits is hard",
+    "Feeling unsafe walking alone",
     "GPT-4 is too expensive",
     "Finding users and determining if a startup problem is real",
-    "Forming new habits is hard",
-    "Want to protect oneself from government surveillance",
-    "Feeling unsafe walking alone",
+    "Want to protect myself from government surveillance",
 ]
 
 INITIAL_NEED = POSSIBLE_NEEDS[0]
