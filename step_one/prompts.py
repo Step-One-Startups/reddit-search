@@ -10,11 +10,11 @@ def score_post_relevance(post, need):
     while num_tries < 5:
         try:
             completion = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="openpipe:golden-gate-park",
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a helpful AI assistant whose job is to determine whether the author of a reddit post is likely to buy a product built to address a specific need.Score the following post on a scale of 1 to 3, where 1 means the author is very unlikely to buy the product and 3 means the author is almost certain to buy the product. If they are working on a product that addresses the need, give them a low score. If you aren't sure, give them a score of 1.",
+                        "content": "You are a helpful AI assistant whose job is to determine whether the author of a reddit post is likely to buy a product built to address a specific need. Score the following post on a scale of 1 to 3, where 1 means the author is very unlikely to buy the product and 3 means the author is almost certain to buy the product. If they are working on a product that addresses the need, give them a low score. If you aren't sure, give them a score of 1.",
                     },
                     {
                         "role": "user",
@@ -39,7 +39,9 @@ def score_post_relevance(post, need):
                         },
                     }
                 ],
-                openpipe={"tags": {"prompt_id": "score_post_relevance"}},
+                openpipe={
+                    "tags": {"prompt_id": "score_post_relevance"},
+                },
             )
             break  # exit loop if the call is successful
         except HTTPError as e:

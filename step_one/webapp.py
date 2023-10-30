@@ -75,6 +75,9 @@ st.markdown(
         margin: 10px 0;
         word-break: break-word;
     }
+    div[data-testid="StyledLinkIconContainer"] {
+        max-width: 100%;
+    }
     .element-container, .stMarkdown {
         max-width: 100%;
     }

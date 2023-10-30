@@ -1308,13 +1308,13 @@ wandb = ["numpy", "openpyxl (>=3.0.7)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1
 
 [[package]]
 name = "openpipe"
-version = "3.1.2"
+version = "3.3.5"
 description = "Python client library for the OpenPipe service"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "openpipe-3.1.2-py3-none-any.whl", hash = "sha256:a0e1cedacf8bcbdf07997cd9287e8bb8a9980ad07695c84db684db9755cf6439"},
-    {file = "openpipe-3.1.2.tar.gz", hash = "sha256:fe12bc732dc6b26164dfc978f22169dd8ec54621b243e8ab30f2329472cbc1b0"},
+    {file = "openpipe-3.3.5-py3-none-any.whl", hash = "sha256:9794c7a4343c5ab33d1d39994690e0ee0680354d20ad81ed1a926c43f21390a9"},
+    {file = "openpipe-3.3.5.tar.gz", hash = "sha256:82545b82274c689f994f7ac24fc84911dc5ab7a16f9cfa94544851751bddbd11"},
 ]
 
 [package.dependencies]
@@ -2808,4 +2808,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.18"
-content-hash = "7cdd455c53af1ade4975654f5e653b2635b3c34ec787ad80a616e8d157b70b23"
+content-hash = "45c979b1def1bd1e38e501a51d9154f45effc64ee1aee7db39a07cc6736e7273"
