@@ -10,7 +10,7 @@ def score_post_relevance(post, need):
     while num_tries < 5:
         try:
             completion = openai.ChatCompletion.create(
-                model="openpipe:golden-gate-park",
+                model="openpipe:reddit-scoring-v1",
                 messages=[
                     {
                         "role": "system",
